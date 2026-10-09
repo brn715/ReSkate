@@ -17,15 +17,14 @@ struct SidebarView: View {
                     .tag(ReSkateLauncherApp.Selection.log)
             }
 
-            Section("Bottles") {
-                if crossOver.bottles.isEmpty {
-                    Text("No bottles discovered")
-                        .foregroundStyle(.secondary)
-                        .font(.callout)
-                }
-                ForEach(crossOver.bottles) { bottle in
+            Section("Bottle") {
+                if let bottle = crossOver.bottle {
                     Label(bottle.name, systemImage: bottle.hasGameInstalled ? "checkmark.seal.fill" : "folder")
                         .badge(bottle.flavor.rawValue)
+                } else {
+                    Text("`skate-fex` not found")
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
                 }
             }
         }

@@ -36,8 +36,8 @@ struct LogView: View {
                 }
             }
         }
-        .task(id: crossOver.primaryBottle()?.id) {
-            guard let url = crossOver.primaryBottle()?.reSkateLogURL else { return }
+        .task(id: crossOver.bottle?.id) {
+            guard let url = crossOver.bottle?.reSkateLogURL else { return }
             let tailer = LogTailer(url: url)
             for await line in tailer.lines() {
                 lines.append(line)

@@ -14,7 +14,7 @@ struct PlayView: View {
                 .font(.system(size: 88))
                 .foregroundStyle(.tint)
 
-            if let bottle = crossOver.primaryBottle() {
+            if let bottle = crossOver.bottle {
                 VStack(spacing: 8) {
                     Text("Launching in: \(bottle.name)")
                         .font(.headline)
@@ -23,6 +23,9 @@ struct PlayView: View {
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                 }
+            } else {
+                Text("`skate-fex` bottle not found in CrossOver Preview")
+                    .foregroundStyle(.orange)
             }
 
             Button(action: launchGame) {
@@ -32,7 +35,7 @@ struct PlayView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(crossOver.primaryBottle() == nil || isLaunching)
+            .disabled(crossOver.bottle == nil || isLaunching)
 
             if let err = launchError {
                 Text(err).foregroundStyle(.red).font(.caption)
@@ -50,9 +53,9 @@ struct PlayView: View {
     }
 
     private func launchGame() {
-        guard let bottle = crossOver.primaryBottle(),
-              let install = crossOver.installs.first(where: { $0.flavor == bottle.flavor }) else {
-            launchError = "No usable CrossOver install / bottle."
+        guard let bottle = crossOver.bottle,
+              let install = crossOver.install else {
+            launchError = "CrossOver Preview install missing."
             return
         }
         launchError = nil

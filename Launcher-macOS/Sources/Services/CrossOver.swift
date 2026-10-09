@@ -1,38 +1,36 @@
 import Foundation
 
-/// Bottle inventory across all installed CrossOver flavors.
+/// Hardcoded single-bottle mode: we only care about the FEX Preview bottle
+/// named `skate-fex`. Swap `preferredName` / `preferredFlavor` if that changes.
 @Observable
 public final class CrossOverService {
-    public private(set) var installs: [CrossOverInstall] = []
-    public private(set) var bottles: [Bottle] = []
+    public static let preferredName = "skate-fex"
+    public static let preferredFlavor = Bottle.Flavor.preview
+
+    public private(set) var install: CrossOverInstall?   // Preview install only
+    public private(set) var bottle: Bottle?              // skate-fex only
 
     public init() {
         rescan()
     }
 
     public func rescan() {
-        installs = CrossOverInstall.detect()
-        var found: [Bottle] = []
-        for install in installs {
-            let bottlesRoot = install.bottlesRoot
-            let fm = FileManager.default
-            guard let entries = try? fm.contentsOfDirectory(
-                at: bottlesRoot,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) else { continue }
-            for entry in entries where (try? entry.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {
-                // Skip noise: real bottles have a drive_c inside.
-                let driveC = entry.appendingPathComponent("drive_c", isDirectory: true)
-                guard fm.fileExists(atPath: driveC.path) else { continue }
-                found.append(Bottle(name: entry.lastPathComponent, flavor: install.flavor, url: entry))
-            }
+        let all = CrossOverInstall.detect()
+        install = all.first(where: { $0.flavor == Self.preferredFlavor })
+
+        guard let install else {
+            bottle = nil
+            return
         }
-        bottles = found.sorted { $0.name < $1.name }
+
+        let candidate = install.bottlesRoot.appendingPathComponent(Self.preferredName, isDirectory: true)
+        let fm = FileManager.default
+        let driveC = candidate.appendingPathComponent("drive_c", isDirectory: true)
+        bottle = fm.fileExists(atPath: driveC.path)
+            ? Bottle(name: Self.preferredName, flavor: install.flavor, url: candidate)
+            : nil
     }
 
-    /// The single bottle that currently holds a ReSkate install, if any.
-    public func primaryBottle() -> Bottle? {
-        bottles.first(where: { $0.hasLauncherInstalled })
-    }
+    /// Compatibility shim for views that used to iterate many bottles.
+    public func primaryBottle() -> Bottle? { bottle }
 }

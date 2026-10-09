@@ -14,7 +14,7 @@ struct ModsView: View {
         VStack(spacing: 0) {
             headerBar
 
-            if let bottle = crossOver.primaryBottle() {
+            if let bottle = crossOver.bottle {
                 HStack {
                     Text("Installing into \(bottle.modsDir.path)")
                         .font(.caption)
@@ -23,6 +23,10 @@ struct ModsView: View {
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 8)
+            } else {
+                Label("`skate-fex` bottle not found", systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal)
             }
 
             List(selection: .constant(Optional<Mod>.none)) {
@@ -117,7 +121,7 @@ struct ModsView: View {
     }
 
     private func install(_ mod: Mod) async {
-        guard let bottle = crossOver.primaryBottle() else { return }
+        guard let bottle = crossOver.bottle else { return }
         do {
             _ = try await ts.install(mod, into: bottle)
             rescan()
@@ -127,7 +131,7 @@ struct ModsView: View {
     }
 
     private func rescan() {
-        if let bottle = crossOver.primaryBottle() {
+        if let bottle = crossOver.bottle {
             installed = InstalledMod.scan(in: bottle)
         }
     }

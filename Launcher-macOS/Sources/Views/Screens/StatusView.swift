@@ -12,22 +12,32 @@ struct StatusView: View {
             VStack(alignment: .leading, spacing: 24) {
                 header
 
-                GroupBox("Environment") {
+                GroupBox("CrossOver Preview") {
                     VStack(alignment: .leading, spacing: 8) {
-                        LabeledContent("CrossOver installs") {
-                            Text(crossOver.installs.map(\.flavor.rawValue).joined(separator: ", "))
-                                .foregroundStyle(.secondary)
+                        if let install = crossOver.install {
+                            LabeledContent("Install") {
+                                Text(install.bundleURL.path)
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
+                        } else {
+                            Label("CrossOver Preview not found in /Applications", systemImage: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
                         }
-                        LabeledContent("Bottles") { Text("\(crossOver.bottles.count)") }
-                        LabeledContent("Active bottle") {
-                            Text(crossOver.primaryBottle()?.name ?? "—")
-                                .foregroundStyle(.secondary)
-                        }
-                        if let bottle = crossOver.primaryBottle() {
+
+                        if let bottle = crossOver.bottle {
+                            LabeledContent("Bottle", value: bottle.name)
+                            LabeledContent("Launcher installed") {
+                                Image(systemName: bottle.hasLauncherInstalled ? "checkmark.circle.fill" : "xmark.circle")
+                                    .foregroundStyle(bottle.hasLauncherInstalled ? .green : .orange)
+                            }
                             LabeledContent("Skate installed") {
                                 Image(systemName: bottle.hasGameInstalled ? "checkmark.circle.fill" : "xmark.circle")
                                     .foregroundStyle(bottle.hasGameInstalled ? .green : .orange)
                             }
+                        } else {
+                            Label("Bottle `skate-fex` missing in CrossOver Preview", systemImage: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
                         }
                     }
                     .padding(.vertical, 4)
@@ -49,12 +59,6 @@ struct StatusView: View {
                         }
                     }
                 }
-
-                if let lastError {
-                    Text(lastError)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
             }
             .padding()
         }
@@ -71,7 +75,7 @@ struct StatusView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("ReSkate for macOS")
                 .font(.largeTitle.bold())
-            Text("Native launcher driving the Windows ReSkate runtime inside CrossOver.")
+            Text("Native launcher driving the `skate-fex` Preview bottle.")
                 .foregroundStyle(.secondary)
         }
     }
